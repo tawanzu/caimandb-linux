@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CaimanDB NQL · Complete Reference</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f1f4f9;
+            color: #0b1a2f;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh;
+            overflow: hidden;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+        }
+
+        .sidebar-header {
+            padding: 1.25rem 1.25rem 0.5rem 1.25rem;
+            border-bottom: 1px solid #eef2f6;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: #0b1a2f;
+        }
+        .sidebar-header h1 span { color: #2563eb; }
+        .sidebar-header .sub {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .search-box {
+            margin: 0.75rem 1.25rem 0.5rem 1.25rem;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 0.6rem 0.6rem 2.4rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            background: #f1f5f9;
+            transition: all 0.15s;
+            outline: none;
+            font-family: inherit;
+            color: #0b1a2f;
+        }
+
+        .search-box input:focus {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .search-box .icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .index-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem 0 2rem 0;
+        }
+
+        .index-container ul {
+            list-style: none;
+            padding: 0 0.5rem;
+        }
+        .index-container li { margin: 0.05rem 0; }
+
+        .index-container a {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            color: #1e293b;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 450;
+            transition: background 0.08s, color 0.08s;
+            border-left: 3px solid transparent;
+        }
+
+        .index-container a .idx {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            font-weight: 400;
+            min-width: 1.6rem;
+            text-align: right;
+        }
+
+        .index-container a:hover {
+            background: #eef2ff;
+            color: #1e3a8a;
+            border-left-color: #2563eb;
+        }
+
+        .index-container a.active {
+            background: #dbeafe;
+            border-left-color: #2563eb;
+            color: #1e3a8a;
+            font-weight: 500;
+        }
+
+        #search-message {
+            font-size: 0.8rem;
+            color: #64748b;
+            padding: 0.2rem 1.25rem 0.5rem 1.25rem;
+            display: none;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 3rem 4rem 3rem;
+            background: #f8fafc;
+        }
+
+        .main-content h2 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin: 2rem 0 0.6rem 0;
+            padding-bottom: 0.3rem;
+            border-bottom: 3px solid #e2e8f0;
+            letter-spacing: -0.02em;
+            color: #0b1a2f;
+            scroll-margin-top: 1.2rem;
+        }
+        .main-content h2:first-of-type { margin-top: 0; }
+
+        .main-content h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin: 1.4rem 0 0.5rem 0;
+            color: #0f2b4b;
+        }
+
+        .main-content h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 1rem 0 0.25rem 0;
+            color: #1e3a5f;
+        }
+
+        .main-content p {
+            line-height: 1.7;
+            color: #1e293b;
+            margin: 0.5rem 0;
+        }
+
+        .main-content li {
+            line-height: 1.7;
+            color: #1e293b;
+        }
+
+        .main-content ul {
+            padding-left: 1.5rem;
+            margin: 0.5rem 0;
+        }
+        .main-content ul li { margin: 0.2rem 0; }
+
+        .main-content .code-block {
+            background: #0d1b2a;
+            color: #e2e8f0;
+            padding: 1rem 1.4rem;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            margin: 0.7rem 0 1.2rem 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border: 1px solid #1e293b;
+            line-height: 1.8;
+        }
+
+        .main-content .code-block .kw { color: #f472b6; font-weight: 600; }
+        .main-content .code-block .fn { color: #60a5fa; }
+        .main-content .code-block .str { color: #a7f3d0; }
+        .main-content .code-block .cmt { color: #64748b; font-style: italic; }
+        .main-content .code-block .num { color: #fcd34d; }
+        .main-content .code-block .op { color: #c084fc; }
+        .main-content .code-block .bool { color: #f472b6; }
+        .main-content .code-block .var { color: #93c5fd; }
+        .main-content .code-block .type { color: #6ee7b7; }
+        .main-content .code-block .err { color: #fca5a5; }
+
+        .main-content .inline-code {
+            background: #eef2f6;
+            padding: 0.15rem 0.5rem;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: #0b1a2f;
+            border: 1px solid #dbe0e8;
+        }
+
+        .main-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0 1.8rem 0;
+            font-size: 0.9rem;
+        }
+
+        .main-content th {
+            background: #eef2f6;
+            text-align: left;
+            padding: 0.6rem 0.9rem;
+            font-weight: 600;
+            border: 1px solid #d1d9e6;
+        }
+
+        .main-content td {
+            padding: 0.6rem 0.9rem;
+            border: 1px solid #d1d9e6;
+            background: white;
+        }
+
+        .main-content .note {
+            background: #fefce8;
+            border-left: 4px solid #eab308;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            margin: 0.8rem 0;
+            font-size: 0.92rem;
+        }
+        .main-content .note strong { color: #854d0e; }
+
+        .main-content .tip {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            margin: 0.8rem 0;
+            font-size: 0.92rem;
+        }
+        .main-content .tip strong { color: #065f46; }
+
+        .main-content .warning {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            margin: 0.8rem 0;
+            font-size: 0.92rem;
+        }
+        .main-content .warning strong { color: #991b1b; }
+
+        .main-content .info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            margin: 0.8rem 0;
+            font-size: 0.92rem;
+        }
+        .main-content .info strong { color: #1e40af; }
+
+        .main-content hr {
+            border: 0;
+            height: 1px;
+            background: linear-gradient(to right, #e2e8f0, transparent);
+            margin: 2.5rem 0;
+        }
+
+        .main-content .cmd-syntax {
+            background: #f1f5f9;
+            padding: 0.15rem 0.6rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: #0b1a2f;
+            border: 1px solid #e2e8f0;
+        }
+
+        .main-content .section-desc {
+            color: #475569;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .main-content .tree {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #1e293b;
+            background: #f1f5f9;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            border: 1px solid #e2e8f0;
+            line-height: 1.8;
+        }
+
+        .main-content::-webkit-scrollbar,
+        .index-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .main-content::-webkit-scrollbar-track,
+        .index-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .main-content::-webkit-scrollbar-thumb,
+        .index-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .main-content::-webkit-scrollbar-thumb:hover,
+        .index-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 260px; }
+            .main-content { padding: 1.5rem; }
+        }
+
+        @media (max-width: 600px) {
+            body { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid #e2e8f0; }
+            .index-container { max-height: 300px; }
+            .main-content { height: auto; overflow: visible; padding: 1.25rem; }
+        }
+
+        .main-content * {
+            scroll-margin-top: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>CaimanDB <span>NQL</span></h1>
+            <div class="sub">Complete Syntax Reference · v1.0</div>
+        </div>
+        <div class="search-box">
+            <span class="icon">⌕</span>
+            <input type="text" id="searchInput" placeholder="Search commands, keywords..." aria-label="Search syntax">
+        </div>
+        <div id="search-message">No results found</div>
+        <nav class="index-container" id="indexContainer"></nav>
+    </aside>
+
+    <main class="main-content" id="mainContent"></main>
+
+    <script>
+        (function() {
+            const sections = [];
+
+            function addSection(id, title, contentHtml) {
+                sections.push({ id, title, content: contentHtml });
+            }
+
+            function code(str) {
+                return '<div class="code-block">' + str + '</div>';
+            }
+
+            function inline(str) {
+                return '<span class="inline-code">' + str + '</span>';
+            }
+
+            function note(txt) {
+                return '<div class="note"><strong>Note:</strong> ' + txt + '</div>';
+            }
+
+            function tip(txt) {
+                return '<div class="tip"><strong>Tip:</strong> ' + txt + '</div>';
+            }
+
+            function warning(txt) {
+                return '<div class="warning"><strong>Warning:</strong> ' + txt + '</div>';
+            }
+
+            function info(txt) {
+                return '<div class="info"><strong>Info:</strong> ' + txt + '</div>';
+            }
+
+            function table(rows, headers) {
+                var h = headers ? '<thead><tr>' + headers.map(function(h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead>' : '';
+                var b = rows.map(function(r) { return '<tr>' + r.map(function(c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('');
+                return '<table>' + h + '<tbody>' + b + '</tbody></table>';
+            }
+
+            // ================================================================
+            //  DIRECTORY STRUCTURE
+            // ================================================================
+            addSection('directory-structure', 'Directory Structure',
+                '<p class="section-desc">CaimanDB\'s on-disk organization for databases, blocks, indexes, and system data.</p>' +
+                '<div class="tree">' +
+                './data/<br/>' +
+                '├── &lt;db_name&gt;/                    <span class="cmt">← Database directory</span><br/>' +
+                '│   ├── __meta/                   <span class="cmt">← Database metadata (db.json)</span><br/>' +
+                '│   ├── &lt;block_name&gt;/             <span class="cmt">← Block directory</span><br/>' +
+                '│   │   ├── __data/               <span class="cmt">← BadgerDB data (documents)</span><br/>' +
+                '│   │   ├── __index/              <span class="cmt">← Secondary indexes</span><br/>' +
+                '│   │   └── __meta/               <span class="cmt">← Block metadata (block.json)</span><br/>' +
+                '│   └── ... more blocks<br/>' +
+                '├── __users/                      <span class="cmt">← User authentication (Argon2id)</span><br/>' +
+                '├── __raft/                       <span class="cmt">← Raft cluster state</span><br/>' +
+                '├── __shards/                     <span class="cmt">← Shard management data</span><br/>' +
+                '├── __cluster/                    <span class="cmt">← Cluster node information</span><br/>' +
+                '├── __system/                     <span class="cmt">← System data</span><br/>' +
+                '│   └── wal/                      <span class="cmt">← Write-Ahead Log (WAL)</span><br/>' +
+                '└── __external/                   <span class="cmt">← Large documents (>5MB) external storage</span>' +
+                '</div>' +
+                info('All database and block metadata is stored as JSON files in the __meta directories.') +
+                note('Large documents exceeding 5MB are automatically stored in __external/ to optimize BadgerDB performance.')
+            );
+
+            // ================================================================
+            //  ADVANCED FEATURES
+            // ================================================================
+            addSection('advanced-features', 'Advanced Features',
+                '<p class="section-desc">CaimanDB\'s enterprise-grade features for security, performance, and scalability.</p>' +
+                '<h4>Security</h4>' +
+                '<ul>' +
+                '<li><strong>Argon2id</strong> password hashing (OWASP recommended)</li>' +
+                '<li><strong>JWT Authentication</strong> with configurable expiry</li>' +
+                '<li><strong>Basic Auth</strong> fallback (HTTP)</li>' +
+                '<li><strong>Rate limiting</strong> per user (configurable)</li>' +
+                '<li><strong>Account lockout</strong> after failed attempts</li>' +
+                '<li><strong>Audit logging</strong> (JSON format)</li>' +
+                '<li><strong>TLS/HTTPS</strong> support</li>' +
+                '<li><strong>Risk engine</strong> for operation blocking</li>' +
+                '</ul>' +
+                '<h4>Data Management</h4>' +
+                '<ul>' +
+                '<li><strong>ACID Transactions</strong> (BEGIN/COMMIT/ROLLBACK)</li>' +
+                '<li><strong>Write-Ahead Logging</strong> (WAL) for crash recovery</li>' +
+                '<li><strong>External storage</strong> for large documents (>5MB)</li>' +
+                '<li><strong>Automatic compression</strong> (Zstd/Gzip) for >100KB</li>' +
+                '<li><strong>Secondary indexes</strong> with lazy loading</li>' +
+                '<li><strong>Multi-level caching</strong> (L1 + L2)</li>' +
+                '<li><strong>Consistent hashing</strong> for sharding</li>' +
+                '<li><strong>Automatic shard splitting/merging</strong></li>' +
+                '<li><strong>Auto-scaling</strong> based on data growth</li>' +
+                '</ul>' +
+                '<h4>Performance</h4>' +
+                '<ul>' +
+                '<li><strong>Cost-based query optimizer</strong></li>' +
+                '<li><strong>Vectorized query processing</strong></li>' +
+                '<li><strong>Distributed query execution</strong></li>' +
+                '<li><strong>Buffer pooling</strong> for reduced GC pressure</li>' +
+                '<li><strong>Streaming WAL</strong> support</li>' +
+                '<li><strong>Fast startup mode</strong> (skip WAL replay)</li>' +
+                '<li><strong>Parallel batch operations</strong></li>' +
+                '<li><strong>Lazy index loading</strong> on demand</li>' +
+                '</ul>' +
+                '<h4>Cluster</h4>' +
+                '<ul>' +
+                '<li><strong>Auto-cluster initialization</strong> (Raft consensus)</li>' +
+                '<li><strong>Auto-node discovery</strong> and joining</li>' +
+                '<li><strong>Auto-rebalancing</strong> with predictive analytics</li>' +
+                '<li><strong>Auto-failover</strong> and leader election</li>' +
+                '<li><strong>Distributed query executor</strong> with shard pruning</li>' +
+                '<li><strong>Auto-scale</strong> to millions of nodes and shards</li>' +
+                '</ul>' +
+                '<h4>Intelligent Engine</h4>' +
+                '<ul>' +
+                '<li><strong>Predictive scaling</strong> (machine learning)</li>' +
+                '<li><strong>Auto-index optimization</strong></li>' +
+                '<li><strong>Auto-cache adaptation</strong></li>' +
+                '<li><strong>Self-healing</strong> with zero downtime</li>' +
+                '<li><strong>Predictive resource allocation</strong></li>' +
+                '<li><strong>Intelligent query routing</strong></li>' +
+                '</ul>'
+            );
+
+            // ================================================================
+            //  1. DATABASE COMMANDS
+            // ================================================================
+            addSection('database-commands', 'Database Commands',
+                '<p class="section-desc">Create, drop, rename, switch, inspect, backup, and restore databases.</p>' +
+                code(
+                    '<span class="kw">CREATE DB</span> <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">DROP DB</span> <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">RENAME DB</span> <span class="var">&lt;old&gt;</span> <span class="kw">TO</span> <span class="var">&lt;new&gt;</span>\n' +
+                    '<span class="kw">USE</span> <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">SHOW DBS</span>\n' +
+                    '<span class="kw">SHOW DBS</span> <span class="var">&lt;name&gt;</span> [<span class="var">&lt;name2&gt;</span> ...]\n' +
+                    '<span class="kw">INFO DB</span> <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">DESCRIBE DB</span> <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">STATS DB</span> [<span class="var">&lt;name&gt;</span>]\n' +
+                    '<span class="kw">SIZE DB</span> [<span class="var">&lt;name&gt;</span>]\n' +
+                    '<span class="kw">COMPACT</span> <span class="var">&lt;db&gt;</span>\n' +
+                    '<span class="kw">ANALYZE DB</span> [<span class="var">&lt;name&gt;</span>]\n' +
+                    '<span class="kw">OPTIMIZE DB</span> [<span class="var">&lt;name&gt;</span>]\n' +
+                    '<span class="kw">BACKUP</span> <span class="var">&lt;db&gt;</span> <span class="kw">TO</span> <span class="str">&lt;file&gt;</span>\n' +
+                    '<span class="kw">RESTORE</span> <span class="var">&lt;db&gt;</span> <span class="kw">FROM</span> <span class="str">&lt;file&gt;</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">CREATE DB</span> shop\n' +
+                    '<span class="kw">USE</span> shop\n' +
+                    '<span class="kw">SHOW DBS</span>\n' +
+                    '<span class="kw">INFO DB</span> shop\n' +
+                    '<span class="kw">STATS DB</span> shop\n' +
+                    '<span class="kw">BACKUP</span> shop <span class="kw">TO</span> <span class="str">"shop_2026.bak"</span>\n' +
+                    '<span class="kw">RESTORE</span> shop <span class="kw">FROM</span> <span class="str">"shop_2026.bak"</span>\n' +
+                    '<span class="kw">DROP DB</span> old_shop'
+                ) +
+                '<ul>' +
+                '<li><span class="inline-code">CREATE DB</span> creates a new empty database.</li>' +
+                '<li><span class="inline-code">DROP DB</span> permanently deletes the database and all its blocks.</li>' +
+                '<li><span class="inline-code">COMPACT</span> runs garbage collection and reclaims disk space.</li>' +
+                '<li><span class="inline-code">BACKUP</span> creates a full backup of the database.</li>' +
+                '</ul>' +
+                tip('Use <span class="inline-code">SHOW DBS</span> regularly to monitor database sizes and growth.') +
+                note('Backup files are stored in the configured backup directory, typically a sibling of the data root.')
+            );
+
+            // ================================================================
+            //  2. BLOCK COMMANDS
+            // ================================================================
+            addSection('block-commands', 'Block Commands',
+                '<p class="section-desc">Blocks are containers (like tables or collections) that hold documents. Create, drop, rename, and manage blocks.</p>' +
+                code(
+                    '<span class="kw">CREATE BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">CREATE BLOCK</span> [<span class="var">&lt;db&gt;</span>] (<span class="var">&lt;n1&gt;</span>, <span class="var">&lt;n2&gt;</span>, ...)\n' +
+                    '<span class="kw">DROP BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">RENAME BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;old&gt;</span> <span class="kw">TO</span> <span class="var">&lt;new&gt;</span>\n' +
+                    '<span class="kw">RENAME BLOCK</span> [<span class="var">&lt;db&gt;</span>] (<span class="var">&lt;o1&gt;</span>,...) <span class="kw">TO</span> (<span class="var">&lt;n1&gt;</span>,...)\n' +
+                    '<span class="kw">RENAME FIELD</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;block&gt;</span>.<span class="var">&lt;field&gt;</span> <span class="kw">TO</span> <span class="var">&lt;new_field&gt;</span>\n' +
+                    '<span class="kw">SHOW BLOCKS</span> [<span class="var">&lt;db&gt;</span>]\n' +
+                    '<span class="kw">SHOW BLOCKS</span> <span class="var">&lt;db&gt;</span> <span class="var">&lt;name&gt;</span> [<span class="var">&lt;name2&gt;</span>]\n' +
+                    '<span class="kw">INFO BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">DESCRIBE BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">EMPTY BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">CLEAR</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">ANALYZE BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">OPTIMIZE BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">REBUILD BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">CHECK BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">REPAIR BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">SIZE BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">CREATE BLOCK</span> products\n' +
+                    '<span class="kw">CREATE BLOCK</span> (products, customers, orders)\n' +
+                    '<span class="kw">SHOW BLOCKS</span>\n' +
+                    '<span class="kw">DESCRIBE BLOCK</span> products\n' +
+                    '<span class="kw">REBUILD BLOCK</span> products\n' +
+                    '<span class="kw">EMPTY BLOCK</span> products\n' +
+                    '<span class="kw">RENAME BLOCK</span> products <span class="kw">TO</span> inventory\n' +
+                    '<span class="kw">RENAME BLOCK</span> (product, customer) <span class="kw">TO</span> (products, customers)\n' +
+                    '<span class="kw">RENAME FIELD</span> product.name <span class="kw">TO</span> product_name'
+                ) +
+                '<ul>' +
+                '<li><span class="inline-code">CREATE BLOCK</span> creates a new block in the current or specified database.</li>' +
+                '<li><span class="inline-code">CREATE BLOCK (a, b, c)</span> creates multiple blocks in one statement.</li>' +
+                '<li><span class="inline-code">RENAME BLOCK</span> with lists renames blocks by position (old and new lists must match).</li>' +
+                '<li><span class="inline-code">RENAME FIELD</span> renames a field across every document in a block.</li>' +
+                '<li><span class="inline-code">REBUILD BLOCK</span> rebuilds all indexes for a block.</li>' +
+                '</ul>' +
+                note('Blocks are schemaless — the structure emerges from the documents they contain.') +
+                warning('RENAME FIELD is a bulk rewrite operation that reads and rewrites every document in the block.')
+            );
+
+            // ================================================================
+            //  3. INSERT
+            // ================================================================
+            addSection('insert', 'INSERT — All Variants',
+                '<p class="section-desc">Insert documents using JSON, key-value, batch, file import, or synthetic generation.</p>' +
+                code(
+                    '<span class="kw">INSERT</span> <span class="var">&lt;block&gt;</span> [<span class="var">&lt;id&gt;</span>] <span class="var">&lt;json-object&gt;</span>\n' +
+                    '<span class="kw">INSERT</span> <span class="var">&lt;block&gt;</span> [<span class="var">&lt;id&gt;</span>] <span class="var">key</span>: <span class="var">value</span>, <span class="var">key2</span>: <span class="var">value2</span>, ...\n' +
+                    '<span class="kw">INSERT</span> <span class="var">&lt;block&gt;</span> [<span class="var">&lt;id&gt;</span>] <span class="var">key</span> = <span class="var">value</span>, <span class="var">key2</span> = <span class="var">value2</span>, ...\n' +
+                    '<span class="kw">INSERT</span> <span class="var">&lt;block&gt;</span> <span class="var">&lt;doc1&gt;</span>; <span class="var">&lt;doc2&gt;</span>; <span class="var">&lt;doc3&gt;</span>; ...\n' +
+                    '<span class="kw">INSERT</span> <span class="var">&lt;block&gt;</span> [<span class="var">&lt;json-array&gt;</span>]\n' +
+                    '<span class="kw">INSERT</span> <span class="var">&lt;block&gt;</span> <span class="kw">FROM</span> <span class="str">"&lt;file.json|file.csv&gt;"</span>\n' +
+                    '<span class="kw">INSERT</span> <span class="var">&lt;block&gt;</span> <span class="kw">GENERATE</span> <span class="var">&lt;n&gt;</span> [<span class="kw">WORKERS</span> <span class="var">&lt;w&gt;</span>]'
+                ) +
+                '<h4>JSON Document</h4>' +
+                code(
+                    '<span class="kw">INSERT</span> products {<span class="str">"name"</span>: <span class="str">"Keyboard"</span>, <span class="str">"price"</span>: <span class="num">49.90</span>, <span class="str">"in_stock"</span>: <span class="bool">true</span>}'
+                ) +
+                '<h4>With Explicit ID</h4>' +
+                code(
+                    '<span class="kw">INSERT</span> products kb001 {<span class="str">"name"</span>: <span class="str">"Keyboard"</span>, <span class="str">"price"</span>: <span class="num">49.90</span>, <span class="str">"in_stock"</span>: <span class="bool">true</span>}'
+                ) +
+                '<h4>Key:Value Format</h4>' +
+                code(
+                    '<span class="kw">INSERT</span> products name: <span class="str">"Mouse"</span>, price: <span class="num">19.90</span>, in_stock: <span class="bool">true</span>'
+                ) +
+                '<p>Values are auto-typed: numbers become numbers, <span class="inline-code">{...}</span> becomes nested objects, everything else is a trimmed string.</p>' +
+                '<h4>Multiple Documents</h4>' +
+                code(
+                    '<span class="kw">INSERT</span> products {<span class="str">"name"</span>: <span class="str">"A"</span>}; {<span class="str">"name"</span>: <span class="str">"B"</span>}; {<span class="str">"name"</span>: <span class="str">"C"</span>}'
+                ) +
+                '<h4>Batch Insert (JSON Array)</h4>' +
+                code(
+                    '<span class="kw">INSERT</span> products [{<span class="str">"name"</span>: <span class="str">"A"</span>}, {<span class="str">"name"</span>: <span class="str">"B"</span>}, {<span class="str">"name"</span>: <span class="str">"C"</span>}]'
+                ) +
+                '<h4>Import from File</h4>' +
+                code(
+                    '<span class="kw">INSERT</span> products <span class="kw">FROM</span> <span class="str">"products.json"</span>\n' +
+                    '<span class="kw">INSERT</span> products <span class="kw">FROM</span> <span class="str">"products.csv"</span>'
+                ) +
+                '<h4>GENERATE Synthetic Data</h4>' +
+                code(
+                    '<span class="kw">INSERT</span> products <span class="kw">GENERATE</span> <span class="num">1000000</span>              <span class="cmt">-- auto-scaled workers</span>\n' +
+                    '<span class="kw">INSERT</span> products <span class="kw">GENERATE</span> <span class="num">200000</span> <span class="kw">WORKERS</span> <span class="num">8</span>     <span class="cmt">-- fixed worker count</span>'
+                ) +
+                tip('Use <span class="inline-code">GENERATE</span> for benchmarking, performance testing, or seeding development databases.') +
+                note('Large GENERATE runs automatically switch to BULK MODE.')
+            );
+
+            // ================================================================
+            //  4. FIND / GET
+            // ================================================================
+            addSection('find-get', 'FIND / GET — Query',
+                '<p class="section-desc">Query documents with filtering, projection, grouping, sorting, and pagination.</p>' +
+                code(
+                    '<span class="kw">FIND</span> <span class="var">&lt;block&gt;</span> [<span class="kw">SELECT</span> <span class="var">&lt;field&gt;</span>[,<span class="var">&lt;field&gt;</span>...] | <span class="var">&lt;field&gt;</span> <span class="kw">AS</span> <span class="var">&lt;alias&gt;</span> | <span class="fn">COUNT</span>(<span class="var">&lt;field&gt;</span>) <span class="kw">AS</span> <span class="var">&lt;alias&gt;</span> | <span class="var">&lt;field&gt;</span>/<span class="var">&lt;n&gt;</span> <span class="kw">AS</span> <span class="var">&lt;alias&gt;</span>]\n' +
+                    '                     [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '                     [<span class="kw">DISTINCT</span> [<span class="var">&lt;field&gt;</span>[,<span class="var">&lt;field&gt;</span>...]]]\n' +
+                    '                     [<span class="kw">GROUP BY</span> <span class="var">&lt;field&gt;</span>[,<span class="var">&lt;field&gt;</span>...]] [<span class="kw">HAVING</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '                     [<span class="kw">ORDER</span> <span class="var">&lt;field&gt;</span>[:<span class="kw">ASC</span>|<span class="kw">DESC</span>][,<span class="var">&lt;field&gt;</span>...]]\n' +
+                    '                     [<span class="kw">LIMIT</span> <span class="var">&lt;n&gt;</span>] [<span class="kw">OFFSET</span> <span class="var">&lt;n&gt;</span>]\n' +
+                    '                     [--<span class="type">type:table</span>]\n' +
+                    '\n' +
+                    '<span class="kw">GET</span> <span class="var">&lt;block&gt;</span> <span class="var">&lt;id&gt;</span>\n' +
+                    '<span class="kw">GET</span> <span class="var">&lt;block&gt;</span> @ <span class="var">&lt;id&gt;</span>\n' +
+                    '\n' +
+                    '<span class="kw">EXPLAIN FIND</span> ...     <span class="cmt">-- runs the query for real and reports what happened</span>\n' +
+                    '<span class="kw">EXPLAIN SEARCH</span> ...   <span class="cmt">-- like EXPLAIN ANALYZE</span>'
+                ) +
+                '<h4>Basic Find / By ID</h4>' +
+                code(
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> _id = <span class="str">"abc123"</span>\n' +
+                    '<span class="kw">GET</span> products abc123'
+                ) +
+                '<h4>Filters</h4>' +
+                code(
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> price > <span class="num">20</span> <span class="kw">AND</span> in_stock = <span class="bool">true</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">"%board%"</span> <span class="kw">OR</span> name <span class="kw">CONTAINS</span> <span class="str">"Mon"</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> price <span class="kw">BETWEEN</span> <span class="num">10</span> <span class="kw">AND</span> <span class="num">100</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> status <span class="kw">IN</span> (<span class="str">"active"</span>, <span class="str">"pending"</span>)'
+                ) +
+                '<h4>Grouping with Parentheses and NOT</h4>' +
+                code(
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> (status = <span class="str">"active"</span> <span class="kw">OR</span> status = <span class="str">"trial"</span>) <span class="kw">AND</span> price >= <span class="num">18</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> <span class="kw">NOT</span> (status = <span class="str">"banned"</span> <span class="kw">OR</span> status = <span class="str">"suspended"</span>)'
+                ) +
+                '<h4>Projection (SELECT)</h4>' +
+                code(
+                    '<span class="kw">FIND</span> products <span class="kw">SELECT</span> name, price <span class="kw">WHERE</span> price > <span class="num">20</span>'
+                ) +
+                '<h4>Computed SELECT Fields</h4>' +
+                code(
+                    '<span class="kw">FIND</span> movies <span class="kw">SELECT</span> title, <span class="fn">COUNT</span>(actors) <span class="kw">as</span> actors_count, year\n' +
+                    '<span class="kw">FIND</span> movies <span class="kw">SELECT</span> title, duration_minutes / <span class="num">60</span> <span class="kw">as</span> hours'
+                ) +
+                '<h4>GROUP BY / HAVING</h4>' +
+                code(
+                    '<span class="kw">FIND</span> movies <span class="kw">SELECT</span> title, <span class="fn">COUNT</span>(actors) <span class="kw">as</span> actors_count, year\n' +
+                    '          <span class="kw">WHERE</span> year >= <span class="num">2000</span>\n' +
+                    '          <span class="kw">GROUP BY</span> title, year\n' +
+                    '          <span class="kw">HAVING</span> <span class="fn">COUNT</span>(actors) >= <span class="num">5</span>'
+                ) +
+                '<h4>DISTINCT</h4>' +
+                code(
+                    '<span class="kw">FIND</span> products <span class="kw">DISTINCT</span>                    <span class="cmt">-- dedupe on the whole row</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">DISTINCT</span> category           <span class="cmt">-- dedupe on one field</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">DISTINCT</span> category, status   <span class="cmt">-- dedupe on combination</span>'
+                ) +
+                '<h4>Sorting and Pagination</h4>' +
+                code(
+                    '<span class="kw">FIND</span> products <span class="kw">ORDER</span> name, price:<span class="kw">DESC</span> <span class="kw">WHERE</span> price > <span class="num">18</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> price > <span class="num">18</span> <span class="kw">LIMIT</span> <span class="num">50</span> <span class="kw">OFFSET</span> <span class="num">100</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> price > <span class="num">18</span> --<span class="type">type:table</span>'
+                ) +
+                tip('Use <span class="inline-code">EXPLAIN</span> to understand query performance and index usage.') +
+                note('GROUP BY and HAVING are supported in FIND queries for aggregation at query time.')
+            );
+
+            // ================================================================
+            //  5. SEARCH
+            // ================================================================
+            addSection('search', 'SEARCH — Full-Text',
+                '<p class="section-desc">Full-text search with exact match, fuzzy matching, scoring, and highlighting.</p>' +
+                code(
+                    '<span class="kw">SEARCH</span> <span class="var">&lt;block&gt;</span> <span class="str">"&lt;text&gt;"</span> [<span class="kw">EXACT</span> | <span class="kw">FUZZY</span>]\n' +
+                    '                         [<span class="kw">WITH SCORE</span>] [<span class="kw">WITH MATCHES</span>]\n' +
+                    '                         [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>] [<span class="kw">LIMIT</span> <span class="var">&lt;n&gt;</span>] [<span class="kw">ORDER</span> <span class="var">&lt;field&gt;</span>]'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">SEARCH</span> products <span class="str">"wireless keyboard"</span>\n' +
+                    '<span class="kw">SEARCH</span> products <span class="str">"exact phrase"</span> <span class="kw">EXACT</span>\n' +
+                    '<span class="kw">SEARCH</span> products <span class="str">"~keybord"</span> <span class="kw">FUZZY</span>\n' +
+                    '<span class="kw">SEARCH</span> products <span class="str">"keyboard"</span> <span class="kw">WITH SCORE</span> <span class="kw">WITH MATCHES</span>\n' +
+                    '<span class="kw">SEARCH</span> products <span class="str">"+must_include -must_exclude optional"</span>\n' +
+                    '<span class="kw">SEARCH</span> products <span class="str">"keyboard"</span> <span class="kw">WHERE</span> price > <span class="num">18</span> <span class="kw">LIMIT</span> <span class="num">50</span> <span class="kw">ORDER</span> name'
+                ) +
+                tip('For large blocks, consider using <span class="inline-code">LIMIT</span> to control result size.')
+            );
+
+            // ================================================================
+            //  6. UPDATE
+            // ================================================================
+            addSection('update', 'UPDATE',
+                '<p class="section-desc">Update documents with field replacements, numeric increments/decrements, and array modifications.</p>' +
+                code(
+                    '<span class="kw">UPDATE</span> <span class="var">&lt;block&gt;</span> <span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span> <span class="kw">SET</span> <span class="var">&lt;field&gt;</span> = <span class="var">&lt;value&gt;</span>[, <span class="var">&lt;field2&gt;</span> = <span class="var">&lt;value2&gt;</span> ...]\n' +
+                    '<span class="kw">UPDATE</span> <span class="var">&lt;block&gt;</span> <span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span> <span class="kw">INC</span> <span class="var">&lt;field&gt;</span> = <span class="var">&lt;n&gt;</span>\n' +
+                    '<span class="kw">UPDATE</span> <span class="var">&lt;block&gt;</span> <span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span> <span class="kw">DEC</span> <span class="var">&lt;field&gt;</span> = <span class="var">&lt;n&gt;</span>\n' +
+                    '<span class="kw">UPDATE</span> <span class="var">&lt;block&gt;</span> <span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span> <span class="kw">PUSH</span> <span class="var">&lt;field&gt;</span> = <span class="var">&lt;value&gt;</span>\n' +
+                    '<span class="kw">UPDATE</span> <span class="var">&lt;block&gt;</span> <span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span> <span class="kw">PULL</span> <span class="var">&lt;field&gt;</span> = <span class="var">&lt;value&gt;</span>\n' +
+                    '<span class="kw">UPDATE ALL</span> <span class="var">&lt;block&gt;</span> <span class="kw">SET</span> <span class="var">&lt;field&gt;</span> = <span class="var">&lt;value&gt;</span>[, ...]'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">UPDATE</span> products <span class="kw">WHERE</span> _id = <span class="str">"kb001"</span> <span class="kw">SET</span> name = <span class="str">"Mechanical Keyboard"</span>, price = <span class="num">55</span>\n' +
+                    '<span class="kw">UPDATE</span> products <span class="kw">WHERE</span> _id = <span class="str">"kb001"</span> <span class="kw">INC</span> views = <span class="num">1</span>\n' +
+                    '<span class="kw">UPDATE</span> products <span class="kw">WHERE</span> _id = <span class="str">"kb001"</span> <span class="kw">PUSH</span> tags = <span class="str">"on_sale"</span>\n' +
+                    '<span class="kw">UPDATE ALL</span> products <span class="kw">SET</span> status = <span class="str">"archived"</span>\n' +
+                    '<span class="kw">UPDATE</span> products <span class="kw">WHERE</span> status = <span class="str">"draft"</span> <span class="kw">SET</span> status = <span class="str">"published"</span>, published_at = <span class="fn">now</span>()'
+                ) +
+                warning('UPDATE ALL can be expensive on large blocks — use with caution.')
+            );
+
+            // ================================================================
+            //  7. DELETE
+            // ================================================================
+            addSection('delete', 'DELETE',
+                '<p class="section-desc">Remove documents from a block based on conditions, or remove all documents.</p>' +
+                code(
+                    '<span class="kw">DELETE</span> <span class="var">&lt;block&gt;</span> <span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>\n' +
+                    '<span class="kw">DELETE ALL</span> <span class="var">&lt;block&gt;</span>\n' +
+                    '<span class="kw">EMPTY BLOCK</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>     <span class="cmt">-- alias for DELETE ALL</span>\n' +
+                    '<span class="kw">CLEAR</span> [<span class="var">&lt;db&gt;</span>] <span class="var">&lt;name&gt;</span>           <span class="cmt">-- alias for DELETE ALL</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">DELETE</span> products <span class="kw">WHERE</span> _id = <span class="str">"kb001"</span>\n' +
+                    '<span class="kw">DELETE</span> products <span class="kw">WHERE</span> price < <span class="num">5</span> <span class="kw">OR</span> in_stock = <span class="bool">false</span>\n' +
+                    '<span class="kw">DELETE ALL</span> products'
+                ) +
+                warning('DELETE operations are permanent and cannot be undone.')
+            );
+
+            // ================================================================
+            //  8. ADD FIELD / DROP FIELD / TRUNCATE / UPSERT
+            // ================================================================
+            addSection('add-drop-truncate-upsert', 'ADD FIELD / DROP FIELD / TRUNCATE / UPSERT',
+                '<p class="section-desc">Schema evolution: add default fields, remove fields, truncate blocks, and upsert documents.</p>' +
+                code(
+                    '<span class="kw">ADD FIELD</span> <span class="var">&lt;block&gt;</span>.<span class="var">&lt;field&gt;</span> <span class="kw">DEFAULT</span> <span class="var">&lt;value&gt;</span>[, <span class="var">&lt;field2&gt;</span> <span class="kw">DEFAULT</span> <span class="var">&lt;value2&gt;</span> ...]\n' +
+                    '<span class="kw">DROP FIELD</span> <span class="var">&lt;block&gt;</span>.<span class="var">&lt;field&gt;</span>[, <span class="var">&lt;field2&gt;</span> ...] [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '<span class="kw">TRUNCATE</span> <span class="var">&lt;block&gt;</span>\n' +
+                    '<span class="kw">UPSERT</span> <span class="var">&lt;block&gt;</span> <span class="var">&lt;id&gt;</span> <span class="kw">SET</span> <span class="var">&lt;field&gt;</span>=<span class="var">&lt;value&gt;</span>[, <span class="var">&lt;field2&gt;</span>=<span class="var">&lt;value2&gt;</span> ...]\n' +
+                    '<span class="kw">UPSERT</span> <span class="var">&lt;block&gt;</span> <span class="var">&lt;id&gt;</span> <span class="var">&lt;json-object&gt;</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">ADD FIELD</span> products.discount <span class="kw">DEFAULT</span> <span class="num">0</span>\n' +
+                    '<span class="kw">ADD FIELD</span> products.discount <span class="kw">DEFAULT</span> <span class="num">0</span>, products.featured <span class="kw">DEFAULT</span> <span class="bool">false</span>\n' +
+                    '\n' +
+                    '<span class="kw">DROP FIELD</span> products.discount\n' +
+                    '<span class="kw">DROP FIELD</span> products.legacy_sku <span class="kw">WHERE</span> category = <span class="str">"discontinued"</span>\n' +
+                    '\n' +
+                    '<span class="kw">TRUNCATE</span> products\n' +
+                    '\n' +
+                    '<span class="kw">UPSERT</span> products kb001 <span class="kw">SET</span> name = <span class="str">"Mechanical Keyboard"</span>, price = <span class="num">55</span>\n' +
+                    '<span class="kw">UPSERT</span> products kb001 {<span class="str">"name"</span>: <span class="str">"Mechanical Keyboard"</span>, <span class="str">"price"</span>: <span class="num">55</span>}'
+                ) +
+                tip('Use <span class="inline-code">UPSERT</span> to avoid checking existence separately.')
+            );
+
+            // ================================================================
+            //  9. AGGREGATIONS
+            // ================================================================
+            addSection('aggregations', 'Aggregations (COUNT / SUM / AVG / ...)',
+                '<p class="section-desc">Statistical aggregates over numeric and non-numeric fields.</p>' +
+                code(
+                    '<span class="kw">COUNT</span>  <span class="var">&lt;block&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '<span class="kw">SUM</span>    <span class="var">&lt;block&gt;</span> <span class="var">&lt;field&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '<span class="kw">AVG</span>    <span class="var">&lt;block&gt;</span> <span class="var">&lt;field&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '<span class="kw">MIN</span>    <span class="var">&lt;block&gt;</span> <span class="var">&lt;field&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '<span class="kw">MAX</span>    <span class="var">&lt;block&gt;</span> <span class="var">&lt;field&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '<span class="kw">MEDIAN</span> <span class="var">&lt;block&gt;</span> <span class="var">&lt;field&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '<span class="kw">MODE</span>   <span class="var">&lt;block&gt;</span> <span class="var">&lt;field&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]\n' +
+                    '<span class="kw">STDDEV</span> <span class="var">&lt;block&gt;</span> <span class="var">&lt;field&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">COUNT</span> products <span class="kw">WHERE</span> in_stock = <span class="bool">true</span>\n' +
+                    '<span class="kw">SUM</span> orders amount <span class="kw">WHERE</span> status = <span class="str">"completed"</span>\n' +
+                    '<span class="kw">AVG</span> products price <span class="kw">WHERE</span> category = <span class="str">"electronics"</span>\n' +
+                    '<span class="kw">MIN</span> products price\n' +
+                    '<span class="kw">MAX</span> products price\n' +
+                    '<span class="kw">MEDIAN</span> salaries amount\n' +
+                    '<span class="kw">MODE</span> products category\n' +
+                    '<span class="kw">STDDEV</span> scores value'
+                ) +
+                tip('Aggregations are computed efficiently using indexes where available.')
+            );
+
+            // ================================================================
+            //  10. GROUP BY
+            // ================================================================
+            addSection('group-by', 'GROUP BY',
+                '<p class="section-desc">Group documents by field values and compute aggregates per group.</p>' +
+                code(
+                    '<span class="kw">GROUP</span> <span class="var">&lt;block&gt;</span> <span class="kw">BY</span> <span class="var">&lt;field&gt;</span> [<span class="kw">COUNT</span> | <span class="kw">SUM</span> | <span class="kw">AVG</span> | <span class="kw">MIN</span> | <span class="kw">MAX</span>] [<span class="var">&lt;field&gt;</span>] [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>]'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">GROUP</span> users <span class="kw">BY</span> city <span class="kw">COUNT</span>\n' +
+                    '<span class="kw">GROUP</span> orders <span class="kw">BY</span> status <span class="kw">SUM</span> amount\n' +
+                    '<span class="kw">GROUP</span> products <span class="kw">BY</span> category <span class="kw">AVG</span> price <span class="kw">WHERE</span> price > <span class="num">10</span>\n' +
+                    '<span class="kw">GROUP</span> logs <span class="kw">BY</span> level <span class="kw">COUNT</span> <span class="kw">WHERE</span> timestamp > <span class="str">"2024-01-01"</span>'
+                ) +
+                tip('Use GROUP BY for dashboard-style reports and data summaries.')
+            );
+
+            // ================================================================
+            //  11. ACID TRANSACTIONS
+            // ================================================================
+            addSection('transactions', 'ACID Transactions',
+                '<p class="section-desc">ACID-compliant transactions with BEGIN, COMMIT, and ROLLBACK support.</p>' +
+                code(
+                    '<span class="kw">BEGIN</span> [<span class="var">&lt;db&gt;</span> <span class="var">&lt;block&gt;</span>]\n' +
+                    '          <span class="var">&lt;INSERT|UPDATE|DELETE statements...&gt;</span>\n' +
+                    '<span class="kw">COMMIT</span>\n' +
+                    '<span class="kw">ROLLBACK</span> | <span class="kw">ABORT</span>\n' +
+                    '\n' +
+                    '<span class="kw">TX STATUS</span>       <span class="cmt">-- Show current transaction details</span>\n' +
+                    '<span class="kw">TX LIST</span>         <span class="cmt">-- List active transactions</span>\n' +
+                    '<span class="kw">TX ISOLATION</span>    <span class="cmt">-- Show isolation level</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">BEGIN</span> shop products\n' +
+                    '          <span class="kw">INSERT</span> products {<span class="str">"name"</span>: <span class="str">"Webcam"</span>, <span class="str">"price"</span>: <span class="num">39.90</span>}\n' +
+                    '          <span class="kw">UPDATE</span> products <span class="kw">WHERE</span> _id = <span class="str">"kb001"</span> <span class="kw">SET</span> price = <span class="num">45</span>\n' +
+                    '          <span class="kw">DELETE</span> products <span class="kw">WHERE</span> _id = <span class="str">"old001"</span>\n' +
+                    '<span class="kw">COMMIT</span>\n' +
+                    '\n' +
+                    '<span class="kw">BEGIN</span> shop products\n' +
+                    '          <span class="kw">INSERT</span> products {<span class="str">"name"</span>: <span class="str">"Bad idea"</span>}\n' +
+                    '<span class="kw">ROLLBACK</span>'
+                ) +
+                '<h4>Isolation Levels</h4>' +
+                '<ul>' +
+                '<li><span class="inline-code">read_committed</span> — read only committed data.</li>' +
+                '<li><span class="inline-code">repeatable_read</span> (default) — consistent snapshot during transaction.</li>' +
+                '<li><span class="inline-code">serializable</span> — strongest isolation, full serializability.</li>' +
+                '</ul>' +
+                tip('Use transactions for operations that must be atomic across multiple documents.') +
+                warning('Long-running transactions may block other operations — keep them short.')
+            );
+
+            // ================================================================
+            //  12. BULK LOADING
+            // ================================================================
+            addSection('bulk-loading', 'BULK Loading',
+                '<p class="section-desc">High-performance bulk loading with optimized batching and relaxed durability policies.</p>' +
+                code(
+                    '<span class="kw">BULK MODE ON</span>            <span class="cmt">-- Wider batch windows, relaxed WAL fsync policy</span>\n' +
+                    '<span class="kw">BULK MODE OFF</span>           <span class="cmt">-- Restore normal batching/fsync policy</span>\n' +
+                    '<span class="kw">BULK STATUS</span>             <span class="cmt">-- Show turbo engine stats</span>\n' +
+                    '\n' +
+                    '<span class="kw">IMPORT</span> <span class="var">&lt;block&gt;</span> <span class="kw">FROM FILE</span> <span class="str">\'&lt;path&gt;\'</span> [<span class="kw">FORMAT</span> <span class="kw">NDJSON</span>|<span class="kw">ARRAY</span>] [<span class="kw">BATCH</span> <span class="var">&lt;n&gt;</span>]'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">BULK MODE ON</span>\n' +
+                    '<span class="kw">INSERT</span> products <span class="kw">GENERATE</span> <span class="num">2000000</span>\n' +
+                    '<span class="kw">BULK MODE OFF</span>\n' +
+                    '\n' +
+                    '<span class="kw">IMPORT</span> products <span class="kw">FROM FILE</span> <span class="str">\'/data/products.ndjson\'</span> <span class="kw">FORMAT</span> <span class="kw">NDJSON</span> <span class="kw">BATCH</span> <span class="num">50000</span>\n' +
+                    '<span class="kw">IMPORT</span> products <span class="kw">FROM FILE</span> <span class="str">\'/data/products.json.gz\'</span> <span class="kw">FORMAT</span> <span class="kw">ARRAY</span>\n' +
+                    '<span class="kw">BULK STATUS</span>'
+                ) +
+                tip('Use <span class="inline-code">BULK MODE</span> for large data migrations and seed operations.') +
+                note('FLEX-COLUMN indexing is skipped during BULK MODE — run FLEX REINDEX afterward.')
+            );
+
+            // ================================================================
+            //  13. JOIN
+            // ================================================================
+            addSection('join', 'JOIN',
+                '<p class="section-desc">Join two blocks on a field equality condition.</p>' +
+                code(
+                    '<span class="kw">JOIN</span> <span class="var">&lt;block1&gt;</span> <span class="kw">WITH</span> <span class="var">&lt;block2&gt;</span> <span class="kw">ON</span> <span class="var">&lt;block1&gt;</span>.<span class="var">&lt;field&gt;</span> = <span class="var">&lt;block2&gt;</span>.<span class="var">&lt;field&gt;</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">JOIN</span> orders <span class="kw">WITH</span> customers <span class="kw">ON</span> orders.customer_id = customers._id\n' +
+                    '<span class="kw">JOIN</span> posts <span class="kw">WITH</span> users <span class="kw">ON</span> posts.author_id = users._id'
+                ) +
+                tip('For repeated joins, consider using <span class="inline-code">RELATE</span> to define a permanent relationship.')
+            );
+
+            // ================================================================
+            //  14. RELATE
+            // ================================================================
+            addSection('relate', 'RELATE',
+                '<p class="section-desc">Register permanent relationships between blocks, enabling automatic resolution in FIND queries.</p>' +
+                code(
+                    '<span class="kw">RELATE</span> <span class="var">&lt;block&gt;</span> <span class="kw">USE</span> <span class="var">&lt;target1&gt;</span>[,<span class="var">&lt;target2&gt;</span>,...]'
+                ) +
+                '<p>Each target is either a bare block name (same database) or <span class="inline-code">db.block</span> for cross-database relations. The source document must have a <span class="inline-code">&lt;target&gt;_id</span> field holding the target document\'s ID.</p>' +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">RELATE</span> movies <span class="kw">USE</span> directors,actors,genres\n' +
+                    '<span class="kw">RELATE</span> sales <span class="kw">USE</span> crm.customers,inventory.products,accounting.invoices\n' +
+                    '\n' +
+                    '<span class="kw">FIND</span> movies <span class="kw">SELECT</span> title,directors.name,actors.name\n' +
+                    '<span class="kw">FIND</span> sales <span class="kw">SELECT</span> customers.name,products.name,invoices.total'
+                ) +
+                tip('RELATE eliminates the need to repeat JOIN conditions in every query.') +
+                note('RELATE is explicit and permanent — unlike AUTORELATIONS which are temporal.')
+            );
+
+            // ================================================================
+            //  15. AUTORELATIONS
+            // ================================================================
+            addSection('autorelations', 'AUTORELATIONS',
+                '<p class="section-desc">Automatic, temporal relationships based on read access patterns.</p>' +
+                '<p>CaimanDB watches read access: when the same user reads the same document repeatedly in a short window (default: 5 reads in 10 minutes), it automatically creates a self-relation. Each auto-relation carries <span class="inline-code">access_count</span>, <span class="inline-code">last_seen</span>, a <span class="inline-code">relevance</span> score, and <span class="inline-code">key_metadata</span>.</p>' +
+                code(
+                    '<span class="kw">SHOW AUTORELATIONS</span> <span class="var">&lt;block&gt;</span>\n' +
+                    '            [<span class="kw">FROM</span> <span class="var">&lt;id&gt;</span>] [<span class="kw">TO</span> <span class="var">&lt;id&gt;</span>] [<span class="kw">DEPTH</span> <span class="var">&lt;n&gt;</span>] [<span class="kw">DIRECTION</span> <span class="kw">IN</span>|<span class="kw">OUT</span>|<span class="kw">BOTH</span>]\n' +
+                    '            [<span class="kw">FORMAT</span> <span class="kw">TABLE</span>|<span class="kw">TREE</span>|<span class="kw">GRAPH</span>|<span class="kw">JSON</span>]\n' +
+                    '            [<span class="kw">WHERE</span>|<span class="kw">FILTER</span> <span class="var">&lt;expression&gt;</span>]\n' +
+                    '            [<span class="kw">ORDER BY</span> <span class="kw">DEGREE</span>|<span class="kw">ID</span>|<span class="kw">NAME</span>|<span class="kw">ACCESS_COUNT</span>|<span class="kw">RELEVANCE</span>|<span class="kw">LAST_SEEN</span>|<span class="kw">FIRST_SEEN</span> [<span class="kw">ASC</span>|<span class="kw">DESC</span>]]\n' +
+                    '            [<span class="kw">LIMIT</span> <span class="var">&lt;n&gt;</span>] [<span class="kw">OFFSET</span> <span class="var">&lt;n&gt;</span>]\n' +
+                    '            [<span class="kw">STATS</span>] [<span class="kw">PATHS</span>] [<span class="kw">ORPHANS</span>] [<span class="kw">CYCLES</span>] [<span class="kw">BROKEN</span>] [<span class="kw">SUMMARY</span>] [<span class="kw">VERBOSE</span>]'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">SHOW AUTORELATIONS</span> products\n' +
+                    '<span class="kw">SHOW AUTORELATIONS</span> products <span class="kw">FROM</span> p_042\n' +
+                    '<span class="kw">SHOW AUTORELATIONS</span> products <span class="kw">FROM</span> p_042 <span class="kw">DEPTH</span> <span class="num">3</span> <span class="kw">DIRECTION</span> <span class="kw">BOTH</span> <span class="kw">FORMAT</span> <span class="kw">TREE</span>\n' +
+                    '<span class="kw">SHOW AUTORELATIONS</span> products <span class="kw">STATS</span>\n' +
+                    '<span class="kw">SHOW AUTORELATIONS</span> products <span class="kw">WHERE</span> access_count > <span class="num">10</span> <span class="kw">ORDER BY</span> <span class="kw">DEGREE</span> <span class="kw">LIMIT</span> <span class="num">20</span>\n' +
+                    '<span class="kw">SHOW AUTORELATIONS</span> products <span class="kw">CYCLES</span>\n' +
+                    '<span class="kw">SHOW AUTORELATIONS</span> products <span class="kw">BROKEN</span>'
+                ) +
+                note('Auto-relations are temporal — they expire after a TTL (default 24h) and are swept away automatically.')
+            );
+
+            // ================================================================
+            //  16. VIEWS
+            // ================================================================
+            addSection('views', 'Views',
+                '<p class="section-desc">Create and manage named views — saved FIND queries that can be executed like blocks.</p>' +
+                code(
+                    '<span class="kw">VIEW CREATE</span> <span class="var">&lt;name&gt;</span> <span class="kw">AS FIND</span> <span class="var">&lt;block&gt;</span> <span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>\n' +
+                    '<span class="kw">VIEW DROP</span> <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">VIEW SHOW</span>\n' +
+                    '<span class="kw">VIEW INFO</span> <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="var">&lt;view_name&gt;</span>                    <span class="cmt">-- executes the view</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">VIEW CREATE</span> active_users <span class="kw">AS FIND</span> users <span class="kw">WHERE</span> active = <span class="bool">true</span>\n' +
+                    '<span class="kw">VIEW SHOW</span>\n' +
+                    '<span class="kw">VIEW INFO</span> active_users\n' +
+                    'active_users\n' +
+                    '<span class="kw">VIEW DROP</span> active_users'
+                ) +
+                tip('Views are great for frequently used queries and reporting.')
+            );
+
+            // ================================================================
+            //  17. EXPORT / IMPORT
+            // ================================================================
+            addSection('export-import', 'EXPORT / IMPORT',
+                '<p class="section-desc">Export documents to CSV and JSON files, and import them back.</p>' +
+                '<p><span class="inline-code">EXPORT</span> writes both CSV and JSON files into <span class="inline-code">&lt;data_root&gt;/backups/</span>. Every exported document includes both <span class="inline-code">_id</span> and <span class="inline-code">id</span>.</p>' +
+                code(
+                    '<span class="kw">EXPORT</span> <span class="var">&lt;block&gt;</span> [<span class="kw">WHERE</span> <span class="var">&lt;condition&gt;</span>] <span class="kw">TO</span> <span class="str">"&lt;file&gt;"</span>\n' +
+                    '<span class="kw">IMPORT</span> <span class="var">&lt;block&gt;</span> <span class="kw">FROM</span> <span class="str">"&lt;file.json&gt;"</span>        <span class="cmt">-- also looks inside backups/</span>\n' +
+                    '<span class="kw">IMPORT</span> <span class="var">&lt;block&gt;</span> <span class="kw">FROM</span> <span class="str">"&lt;file.csv&gt;"</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">EXPORT</span> products <span class="kw">TO</span> <span class="str">"products_export"</span>\n' +
+                    '<span class="cmt">-- writes backups/products_export.csv and backups/products_export.json</span>\n' +
+                    '<span class="kw">EXPORT</span> products <span class="kw">WHERE</span> price > <span class="num">18</span> <span class="kw">TO</span> <span class="str">"expensive_products"</span>\n' +
+                    '\n' +
+                    '<span class="kw">IMPORT</span> products <span class="kw">FROM</span> <span class="str">"products_export.json"</span>\n' +
+                    '<span class="kw">IMPORT</span> products <span class="kw">FROM</span> <span class="str">"products_export.csv"</span>'
+                ) +
+                tip('Use EXPORT for backups, data migration, or sharing data with other systems.')
+            );
+
+            // ================================================================
+            //  18. USER MANAGEMENT
+            // ================================================================
+            addSection('user-management', 'User Management',
+                '<p class="section-desc">Create, manage, and delete database users with role-based access control.</p>' +
+                code(
+                    '<span class="kw">CREATE USER</span> <span class="var">&lt;name&gt;</span> <span class="kw">IDENTIFIED BY</span> <span class="str">"&lt;pass&gt;"</span>\n' +
+                    '            [<span class="kw">ROLE</span> <span class="kw">ADMIN</span>|<span class="kw">SUBADMIN</span>|<span class="kw">DEVELOPER</span>|<span class="kw">USER</span>]\n' +
+                    '            [<span class="kw">STATUS</span> <span class="kw">ACTIVE</span>|<span class="kw">DISABLED</span>]\n' +
+                    '            [<span class="kw">DEFAULT DATABASE</span> <span class="var">&lt;db&gt;</span>]\n' +
+                    '            [<span class="kw">DEFAULT BLOCK</span> <span class="var">&lt;block&gt;</span>]\n' +
+                    '            [<span class="kw">PASSWORD EXPIRE</span> <span class="kw">NEVER</span>|<span class="kw">DAYS</span> <span class="var">&lt;n&gt;</span>]\n' +
+                    '            [<span class="kw">ACCOUNT LOCK</span> <span class="kw">ON</span>|<span class="kw">OFF</span>]\n' +
+                    '            [<span class="kw">COMMENT</span> <span class="str">"&lt;description&gt;"</span>]\n' +
+                    '<span class="kw">DROP USER</span> <span class="var">&lt;name&gt;</span>\n' +
+                    '<span class="kw">SHOW USERS</span>\n' +
+                    '\n' +
+                    '<span class="kw">CREATE SERVER</span> <span class="var">&lt;name&gt;</span> <span class="kw">ADMIN</span> [<span class="var">&lt;username&gt;</span>] <span class="kw">IDENTIFIED BY</span> <span class="str">"&lt;pass&gt;"</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">CREATE USER</span> analyst <span class="kw">IDENTIFIED BY</span> <span class="str">"s3cret!"</span> <span class="kw">ROLE</span> readonly\n' +
+                    '<span class="kw">CREATE USER</span> carla <span class="kw">IDENTIFIED BY</span> <span class="str">"anotherPass!"</span> <span class="kw">ROLE</span> <span class="kw">DEVELOPER</span>\n' +
+                    '            <span class="kw">DEFAULT DATABASE</span> shop <span class="kw">DEFAULT BLOCK</span> products\n' +
+                    '            <span class="kw">PASSWORD EXPIRE</span> <span class="kw">DAYS</span> <span class="num">90</span>\n' +
+                    '<span class="kw">SHOW USERS</span>\n' +
+                    '<span class="kw">DROP USER</span> analyst'
+                ) +
+                note('CREATE SERVER creates an isolated server instance with its own admin credentials.')
+            );
+
+            // ================================================================
+            //  19. ACCESS CONTROL
+            // ================================================================
+            addSection('access-control', 'Access Control (GRANT / REVOKE)',
+                '<p class="section-desc">Grant and revoke read/write permissions on databases and blocks.</p>' +
+                code(
+                    '<span class="kw">GRANT</span> <span class="var">read</span>[,<span class="var">write</span>] <span class="kw">ON</span> <span class="var">&lt;db&gt;</span>.<span class="var">&lt;block&gt;</span> <span class="kw">TO</span> <span class="var">&lt;user&gt;</span>\n' +
+                    '<span class="kw">REVOKE</span> <span class="var">read</span>[,<span class="var">write</span>] <span class="kw">ON</span> <span class="var">&lt;db&gt;</span>.<span class="var">&lt;block&gt;</span> <span class="kw">FROM</span> <span class="var">&lt;user&gt;</span>\n' +
+                    '<span class="kw">SHOW GRANTS</span> [<span class="kw">FOR</span> <span class="var">&lt;user&gt;</span>]'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">GRANT</span> read <span class="kw">ON</span> shop.products <span class="kw">TO</span> analyst\n' +
+                    '<span class="kw">GRANT</span> read,write <span class="kw">ON</span> shop.* <span class="kw">TO</span> carla        <span class="cmt">-- every block in shop</span>\n' +
+                    '<span class="kw">GRANT</span> read <span class="kw">ON</span> shop <span class="kw">TO</span> alice                <span class="cmt">-- bare db == shop.*</span>\n' +
+                    '<span class="kw">REVOKE</span> write <span class="kw">ON</span> shop.products <span class="kw">FROM</span> carla\n' +
+                    '<span class="kw">SHOW GRANTS</span>\n' +
+                    '<span class="kw">SHOW GRANTS</span> <span class="kw">FOR</span> analyst'
+                ) +
+                tip('Use SHOW GRANTS to audit user permissions.')
+            );
+
+            // ================================================================
+            //  20. SHARD & CLUSTER
+            // ================================================================
+            addSection('shard-cluster', 'Shard & Cluster Management',
+                '<p class="section-desc">Manage sharding and cluster operations.</p>' +
+                code(
+                    '<span class="kw">SHARD STATUS</span>\n' +
+                    '<span class="kw">SHARD REBALANCE</span>\n' +
+                    '<span class="kw">SHARD SCALE</span> <span class="var">&lt;db&gt;</span> <span class="var">&lt;shards&gt;</span>\n' +
+                    '\n' +
+                    '<span class="kw">CLUSTER STATUS</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">SHARD STATUS</span>\n' +
+                    '<span class="kw">SHARD REBALANCE</span>\n' +
+                    '<span class="kw">SHARD SCALE</span> shop <span class="num">32</span>\n' +
+                    '<span class="kw">CLUSTER STATUS</span>'
+                ) +
+                tip('Use SHARD SCALE to increase shard count for growing databases.')
+            );
+
+            // ================================================================
+            //  21. CHECKPOINT & SYSTEM
+            // ================================================================
+            addSection('checkpoint-system', 'CHECKPOINT & System Commands',
+                '<p class="section-desc">System-level commands for checkpointing, navigation, and health checks.</p>' +
+                code(
+                    '<span class="kw">CHECKPOINT</span>        <span class="cmt">-- Forces a checkpoint: syncs every database to disk</span>\n' +
+                    '<span class="kw">PWD</span>               <span class="cmt">-- Show current path</span>\n' +
+                    '<span class="kw">LS</span>                <span class="cmt">-- List databases</span>\n' +
+                    '<span class="kw">LS</span> <span class="var">&lt;db&gt;</span>           <span class="cmt">-- List blocks in database</span>\n' +
+                    '<span class="kw">CD</span> <span class="var">&lt;db&gt;</span>           <span class="cmt">-- Change to database</span>\n' +
+                    '<span class="kw">TREE</span>              <span class="cmt">-- Show full directory tree</span>\n' +
+                    '<span class="kw">STATUS</span>            <span class="cmt">-- Show system status</span>\n' +
+                    '<span class="kw">HEALTH</span>            <span class="cmt">-- Show health check</span>\n' +
+                    '<span class="kw">VERSION</span>           <span class="cmt">-- Show version</span>\n' +
+                    '<span class="kw">PING</span>              <span class="cmt">-- Ping the engine</span>\n' +
+                    '<span class="kw">HELP</span>              <span class="cmt">-- Show help</span>\n' +
+                    '<span class="kw">EXIT</span>, <span class="kw">QUIT</span>        <span class="cmt">-- Exit the shell</span>'
+                ) +
+                '<h4>Examples</h4>' +
+                code(
+                    '<span class="kw">CHECKPOINT</span>\n' +
+                    '<span class="kw">PWD</span>\n' +
+                    '<span class="kw">LS</span>\n' +
+                    '<span class="kw">LS</span> shop\n' +
+                    '<span class="kw">CD</span> shop\n' +
+                    '<span class="kw">TREE</span>\n' +
+                    '<span class="kw">STATUS</span>\n' +
+                    '<span class="kw">HEALTH</span>\n' +
+                    '<span class="kw">VERSION</span>\n' +
+                    '<span class="kw">PING</span>\n' +
+                    '<span class="kw">HELP</span>\n' +
+                    '<span class="kw">EXIT</span>'
+                ) +
+                tip('Use <span class="inline-code">CHECKPOINT</span> to ensure data is durably written to disk.')
+            );
+
+            // ================================================================
+            //  22. FILTER OPERATORS
+            // ================================================================
+            addSection('filter-operators', 'Filter Operators',
+                '<p class="section-desc">Complete list of operators available in WHERE clauses and conditions.</p>' +
+                table([
+                    ['<span class="inline-code">=</span>, <span class="inline-code">==</span>', 'Equal'],
+                    ['<span class="inline-code">!=</span>, <span class="inline-code">&lt;&gt;</span>', 'Not equal'],
+                    ['<span class="inline-code">&gt;</span>, <span class="inline-code">&lt;</span>', 'Greater than / Less than'],
+                    ['<span class="inline-code">&gt;=</span>, <span class="inline-code">&lt;=</span>', 'Greater or equal / Less or equal'],
+                    ['<span class="inline-code">LIKE</span>', 'Pattern matching (% wildcard)'],
+                    ['<span class="inline-code">CONTAINS</span>', 'Substring contains'],
+                    ['<span class="inline-code">EXISTS</span>', 'Field exists'],
+                    ['<span class="inline-code">IN</span>', 'Value in list'],
+                    ['<span class="inline-code">NOT IN</span>', 'Value not in list'],
+                    ['<span class="inline-code">BETWEEN</span>', 'Range between two values'],
+                    ['<span class="inline-code">STARTS WITH</span>', 'String starts with'],
+                    ['<span class="inline-code">ENDS WITH</span>', 'String ends with'],
+                    ['<span class="inline-code">AND</span>', 'Logical AND (default when omitted)'],
+                    ['<span class="inline-code">OR</span>', 'Logical OR']
+                ], ['Operator', 'Meaning'])
+            );
+
+            // ================================================================
+            //  23. ENVIRONMENT VARIABLES
+            // ================================================================
+            addSection('environment-variables', 'Environment Variables',
+                '<p class="section-desc">All available environment variables for configuring CaimanDB.</p>' +
+                table([
+                    ['<span class="inline-code">CAIMANDB_DATA</span>', 'Data root directory', './data'],
+                    ['<span class="inline-code">CAIMANDB_CACHE</span>', 'L1 cache (MB)', '2048'],
+                    ['<span class="inline-code">CAIMANDB_L2_CACHE</span>', 'L2 index entries', '4096'],
+                    ['<span class="inline-code">CAIMANDB_WORKERS</span>', 'Worker goroutines', 'auto'],
+                    ['<span class="inline-code">CAIMANDB_LOG_LEVEL</span>', 'debug|info|warn|error', 'info'],
+                    ['<span class="inline-code">CAIMANDB_METRICS</span>', 'Metrics port', '9090'],
+                    ['<span class="inline-code">CAIMANDB_RAFT_PORT</span>', 'Raft port', '2335'],
+                    ['<span class="inline-code">CAIMANDB_RAFT_BIND</span>', 'Raft bind address', '0.0.0.0'],
+                    ['<span class="inline-code">CAIMANDB_QUERY_PORT</span>', 'Query server port', '1555'],
+                    ['<span class="inline-code">CAIMANDB_ADMIN_PORT</span>', 'Admin API port', '1556'],
+                    ['<span class="inline-code">CAIMANDB_SHARD_COUNT</span>', 'Number of shards', '16'],
+                    ['<span class="inline-code">CAIMANDB_REPLICA_COUNT</span>', 'Replication factor', '3'],
+                    ['<span class="inline-code">CAIMANDB_FAST_STARTUP</span>', 'Fast startup (skip WAL)', 'true'],
+                    ['<span class="inline-code">CAIMANDB_COMPRESS_LARGE</span>', 'Compress large docs', 'true'],
+                    ['<span class="inline-code">CAIMANDB_MAX_DOC_SIZE</span>', 'Max document size (bytes)', '10485760'],
+                    ['<span class="inline-code">CAIMANDB_JWT_SECRET</span>', 'JWT secret', 'auto-generated'],
+                    ['<span class="inline-code">CAIMANDB_TLS_ENABLED</span>', 'Enable TLS', 'false'],
+                ], ['Variable', 'Description', 'Default'])
+            );
+
+            // ================================================================
+            //  24. HTTP API
+            // ================================================================
+            addSection('http-api', 'HTTP API Endpoints',
+                '<p class="section-desc">RESTful HTTP API endpoints for query execution and administration.</p>' +
+                '<h4>Query API (Port 1555)</h4>' +
+                code(
+                    '<span class="kw">GET</span>  /query?db=<span class="var">&lt;db&gt;</span>&query=<span class="var">&lt;command&gt;</span>\n' +
+                    '<span class="kw">GET</span>  /status\n' +
+                    '<span class="kw">GET</span>  /health'
+                ) +
+                '<h4>Admin API (Port 1556)</h4>' +
+                code(
+                    '<span class="kw">POST</span>   /api/v1/token           <span class="cmt">-- Generate JWT token (Basic Auth)</span>\n' +
+                    '<span class="kw">POST</span>   /api/v1/auth/login      <span class="cmt">-- Login (Basic Auth)</span>\n' +
+                    '<span class="kw">POST</span>   /api/v1/auth/logout     <span class="cmt">-- Logout</span>\n' +
+                    '<span class="kw">GET</span>    /api/v1/health          <span class="cmt">-- Health check</span>\n' +
+                    '<span class="kw">GET</span>    /api/v1/status          <span class="cmt">-- System status</span>\n' +
+                    '<span class="kw">GET</span>    /api/v1/dbs             <span class="cmt">-- List databases</span>\n' +
+                    '<span class="kw">POST</span>   /api/v1/dbs             <span class="cmt">-- Create database</span>\n' +
+                    '<span class="kw">GET</span>    /api/v1/db/{name}       <span class="cmt">-- Get database info</span>\n' +
+                    '<span class="kw">DELETE</span> /api/v1/db/{name}       <span class="cmt">-- Delete database</span>\n' +
+                    '<span class="kw">POST</span>   /api/v1/query           <span class="cmt">-- Execute query</span>\n' +
+                    '<span class="kw">POST</span>   /api/v1/backup          <span class="cmt">-- Backup database</span>\n' +
+                    '<span class="kw">POST</span>   /api/v1/restore         <span class="cmt">-- Restore database</span>\n' +
+                    '<span class="kw">POST</span>   /api/v1/compact         <span class="cmt">-- Compact database</span>\n' +
+                    '<span class="kw">GET</span>    /api/v1/users           <span class="cmt">-- List users</span>\n' +
+                    '<span class="kw">POST</span>   /api/v1/users           <span class="cmt">-- Create user</span>\n' +
+                    '<span class="kw">GET</span>    /metrics                <span class="cmt">-- Prometheus metrics</span>'
+                ) +
+                tip('Use the Admin API for automation and integration with external tools.') +
+                note('All Admin API endpoints require authentication with JWT token or Basic Auth.')
+            );
+
+            // ================================================================
+            //  25. FULL WORKED EXAMPLE
+            // ================================================================
+            addSection('full-example', 'Full Worked Example',
+                '<p class="section-desc">A complete end-to-end example covering database creation, inserts, queries, updates, transactions, views, and exports.</p>' +
+                code(
+                    '<span class="kw">CREATE DB</span> shop\n' +
+                    '<span class="kw">USE</span> shop\n' +
+                    '<span class="kw">CREATE BLOCK</span> products\n' +
+                    '\n' +
+                    '<span class="kw">INSERT</span> products kb001 {<span class="str">"name"</span>: <span class="str">"Keyboard"</span>, <span class="str">"price"</span>: <span class="num">49.90</span>, <span class="str">"in_stock"</span>: <span class="bool">true</span>}\n' +
+                    '<span class="kw">INSERT</span> products {<span class="str">"name"</span>: <span class="str">"Mouse"</span>, <span class="str">"price"</span>: <span class="num">19.90</span>, <span class="str">"in_stock"</span>: <span class="bool">true</span>}\n' +
+                    '<span class="kw">INSERT</span> products name: <span class="str">"Monitor"</span>, price: <span class="num">199.00</span>, in_stock: <span class="bool">true</span>\n' +
+                    '\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> price > <span class="num">20</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> name <span class="kw">LIKE</span> <span class="str">"%oard%"</span> <span class="kw">ORDER</span> price:<span class="kw">DESC</span>\n' +
+                    '<span class="kw">FIND</span> products <span class="kw">WHERE</span> price <span class="kw">BETWEEN</span> <span class="num">20</span> <span class="kw">AND</span> <span class="num">200</span> <span class="kw">SELECT</span> name, price\n' +
+                    '\n' +
+                    '<span class="kw">SEARCH</span> products <span class="str">"keyboard"</span> <span class="kw">WITH SCORE</span>\n' +
+                    '\n' +
+                    '<span class="kw">UPDATE</span> products <span class="kw">WHERE</span> _id = <span class="str">"kb001"</span> <span class="kw">SET</span> price = <span class="num">45</span>\n' +
+                    '<span class="kw">UPDATE</span> products <span class="kw">WHERE</span> price < <span class="num">30</span> <span class="kw">INC</span> price = <span class="num">1</span>\n' +
+                    '\n' +
+                    '<span class="kw">COUNT</span> products <span class="kw">WHERE</span> in_stock = <span class="bool">true</span>\n' +
+                    '<span class="kw">AVG</span> products price\n' +
+                    '<span class="kw">GROUP</span> products <span class="kw">BY</span> in_stock <span class="kw">COUNT</span>\n' +
+                    '\n' +
+                    '<span class="kw">DELETE</span> products <span class="kw">WHERE</span> _id = <span class="str">"kb001"</span>\n' +
+                    '\n' +
+                    '<span class="kw">BEGIN</span> shop products\n' +
+                    '  <span class="kw">INSERT</span> products {<span class="str">"name"</span>: <span class="str">"Webcam"</span>, <span class="str">"price"</span>: <span class="num">39.90</span>}\n' +
+                    '  <span class="kw">UPDATE</span> products <span class="kw">WHERE</span> name = <span class="str">"Mouse"</span> <span class="kw">SET</span> price = <span class="num">17.90</span>\n' +
+                    '<span class="kw">COMMIT</span>\n' +
+                    '\n' +
+                    '<span class="kw">VIEW CREATE</span> cheap_products <span class="kw">AS FIND</span> products <span class="kw">WHERE</span> price < <span class="num">25</span>\n' +
+                    'cheap_products\n' +
+                    '\n' +
+                    '<span class="kw">EXPORT</span> products <span class="kw">TO</span> <span class="str">"products_backup"</span>\n' +
+                    '<span class="kw">STATUS</span>\n' +
+                    '<span class="kw">STATS DB</span> shop'
+                ) +
+                tip('This example demonstrates the most common operations — use it as a starting point for your own workflows.')
+            );
+
+            // ================================================================
+            //  RENDER
+            // ================================================================
+            var sidebarNav = document.getElementById('indexContainer');
+            var mainContent = document.getElementById('mainContent');
+            var searchInput = document.getElementById('searchInput');
+            var searchMsg = document.getElementById('search-message');
+
+            function renderAll(filter) {
+                filter = filter || '';
+                var filterLower = filter.toLowerCase().trim();
+                var ul = document.createElement('ul');
+                var visibleCount = 0;
+
+                for (var i = 0; i < sections.length; i++) {
+                    var sec = sections[i];
+                    var matches = filterLower === '' ||
+                        sec.title.toLowerCase().indexOf(filterLower) !== -1 ||
+                        sec.content.toLowerCase().indexOf(filterLower) !== -1;
+
+                    if (filterLower !== '' && !matches) continue;
+                    visibleCount++;
+
+                    var li = document.createElement('li');
+                    var a = document.createElement('a');
+                    a.href = '#' + sec.id;
+                    a.innerHTML = '<span class="idx">' + String(i + 1).padStart(2, '0') + '</span> ' + sec.title;
+                    a.dataset.id = sec.id;
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                }
+
+                sidebarNav.innerHTML = '';
+                sidebarNav.appendChild(ul);
+
+                searchMsg.style.display = (filterLower !== '' && visibleCount === 0) ? 'block' : 'none';
+
+                var html = '';
+                for (var i = 0; i < sections.length; i++) {
+                    var sec = sections[i];
+                    var match = filterLower === '' ||
+                        sec.title.toLowerCase().indexOf(filterLower) !== -1 ||
+                        sec.content.toLowerCase().indexOf(filterLower) !== -1;
+                    if (filterLower !== '' && !match) continue;
+                    html += '<h2 id="' + sec.id + '">' + String(i + 1).padStart(2, '0') + '. ' + sec.title + '</h2>' + sec.content;
+                }
+                mainContent.innerHTML = html;
+
+                var links = sidebarNav.querySelectorAll('a');
+                var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            var id = entry.target.id;
+                            links.forEach(function(a) {
+                                if (a.dataset.id === id) {
+                                    a.classList.add('active');
+                                } else {
+                                    a.classList.remove('active');
+                                }
+                            });
+                        }
+                    });
+                }, { threshold: 0.25 });
+
+                document.querySelectorAll('.main-content h2').forEach(function(h) { observer.observe(h); });
+            }
+
+            renderAll('');
+
+            searchInput.addEventListener('input', function() {
+                renderAll(this.value);
+            });
+
+            document.addEventListener('click', function(e) {
+                var link = e.target.closest('a[href^="#"]');
+                if (link) {
+                    e.preventDefault();
+                    var targetId = link.getAttribute('href').substring(1);
+                    var targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: 'smooth' });
+                        document.querySelectorAll('.index-container a').forEach(function(a) {
+                            if (a.dataset.id === targetId) {
+                                a.classList.add('active');
+                            } else {
+                                a.classList.remove('active');
+                            }
+                        });
+                    }
+                }
+            });
+
+        })();
+    </script>
+
+</body>
+</html>
